@@ -13,6 +13,10 @@ Route::get('/dashboard', [LiveDeviceController::class, 'index'])
 
 Route::patch('/live-devices/{liveDevice}/pin', [LiveDeviceController::class, 'updatePin'])
     ->name('live-devices.pin');
+Route::patch('/live-devices/{liveDevice}/hidden', [LiveDeviceController::class, 'updateHidden'])
+    ->name('live-devices.hidden');
+Route::delete('/live-devices', [LiveDeviceController::class, 'reset'])
+    ->name('live-devices.reset');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

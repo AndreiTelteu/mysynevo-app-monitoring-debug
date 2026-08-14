@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Events\LiveDevicesReset;
 use App\Events\LiveDeviceUpdated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -54,6 +55,32 @@ class LiveDeviceMonitoringTest extends TestCase
                 ->where('devices.0.deviceId', 'device-123')
                 ->where('devices.0.salesforceMarketingCloud.contactKey', 'contact-123')
                 ->where('devices.0.isOnline', true));
+    }
+
+    public function test_it_hides_a_device_for_all_monitor_clients(): void
+    {
+        $this->postJson('/api/debug/live-devices/state', $this->payload())->assertOk();
+        Event::fake([LiveDeviceUpdated::class]);
+
+        $this->patchJson(route('live-devices.hidden', 1), ['isHidden' => true])
+            ->assertOk()
+            ->assertJsonPath('device.isHidden', true);
+
+        $this->assertDatabaseHas('live_devices', ['id' => 1, 'is_hidden' => true]);
+        Event::assertDispatched(LiveDeviceUpdated::class);
+    }
+
+    public function test_it_permanently_resets_all_devices_and_broadcasts_the_reset(): void
+    {
+        $this->postJson('/api/debug/live-devices/state', $this->payload())->assertOk();
+        Event::fake([LiveDevicesReset::class]);
+
+        $this->deleteJson(route('live-devices.reset'))
+            ->assertOk()
+            ->assertJsonPath('deleted', true);
+
+        $this->assertDatabaseCount('live_devices', 0);
+        Event::assertDispatched(LiveDevicesReset::class);
     }
 
     private function payload(array $overrides = []): array

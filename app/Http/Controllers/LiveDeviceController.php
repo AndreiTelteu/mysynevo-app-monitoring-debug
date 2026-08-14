@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\LiveDevicesReset;
 use App\Events\LiveDeviceUpdated;
 use App\Models\LiveDevice;
 use Illuminate\Http\JsonResponse;
@@ -62,6 +63,26 @@ class LiveDeviceController extends Controller
         LiveDeviceUpdated::dispatch($liveDevice);
 
         return response()->json(['device' => $liveDevice->toMonitoringArray()]);
+    }
+
+    public function updateHidden(Request $request, LiveDevice $liveDevice): JsonResponse
+    {
+        $data = $request->validate(['isHidden' => ['required', 'boolean']]);
+        $liveDevice->update(['is_hidden' => $data['isHidden']]);
+        $liveDevice->refresh();
+
+        LiveDeviceUpdated::dispatch($liveDevice);
+
+        return response()->json(['device' => $liveDevice->toMonitoringArray()]);
+    }
+
+    public function reset(): JsonResponse
+    {
+        LiveDevice::query()->delete();
+
+        LiveDevicesReset::dispatch();
+
+        return response()->json(['deleted' => true]);
     }
 
     private function attributes(array $data, ?string $sourceIp): array

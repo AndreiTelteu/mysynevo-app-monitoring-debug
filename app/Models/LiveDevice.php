@@ -17,6 +17,7 @@ class LiveDevice extends Model
             'network_internet_reachable' => 'boolean',
             'connection_expensive' => 'boolean',
             'is_pinned' => 'boolean',
+            'is_hidden' => 'boolean',
             'last_seen_at' => 'immutable_datetime',
         ];
     }
@@ -42,6 +43,7 @@ class LiveDevice extends Model
             'salesforceMarketingCloud' => ['contactKey' => $this->salesforce_contact_key, 'deviceId' => $this->salesforce_device_id],
             'lastSeenAt' => $this->last_seen_at->toIso8601String(),
             'isPinned' => $this->is_pinned,
+            'isHidden' => $this->is_hidden,
             'isOnline' => $this->isOnline(),
         ];
     }
