@@ -5,7 +5,6 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LiveDeviceController::class, 'index'])
-    ->middleware(['auth', 'verified'])
     ->name('home');
 
 Route::get('/dashboard', [LiveDeviceController::class, 'index'])
@@ -13,7 +12,6 @@ Route::get('/dashboard', [LiveDeviceController::class, 'index'])
     ->name('dashboard');
 
 Route::patch('/live-devices/{liveDevice}/pin', [LiveDeviceController::class, 'updatePin'])
-    ->middleware(['auth', 'verified'])
     ->name('live-devices.pin');
 
 Route::middleware('auth')->group(function () {

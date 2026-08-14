@@ -1,5 +1,4 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 
@@ -89,8 +88,7 @@ onBeforeUnmount(() => { window.clearInterval(timer); window.Echo.leave('live-dev
 <template>
     <Head title="Live Device Monitor" />
 
-    <AuthenticatedLayout>
-        <div class="monitor-shell">
+    <div class="monitor-shell">
             <section class="monitor-hero">
                 <div>
                     <p class="eyebrow"><span class="pulse"></span> Reverb stream connected</p>
@@ -116,8 +114,7 @@ onBeforeUnmount(() => { window.clearInterval(timer); window.Echo.leave('live-dev
 
             <DeviceTable v-if="pinnedDevices.length" title="Pinned devices" :devices="pinnedDevices" :is-online="isOnline" :display-name="displayName" :elapsed="elapsed" @toggle-pin="togglePin" />
             <DeviceTable title="All devices" :devices="allDevices" :is-online="isOnline" :display-name="displayName" :elapsed="elapsed" @toggle-pin="togglePin" />
-        </div>
-    </AuthenticatedLayout>
+    </div>
 </template>
 
 <script>
