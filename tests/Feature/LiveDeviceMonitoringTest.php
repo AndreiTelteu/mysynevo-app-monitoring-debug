@@ -24,6 +24,8 @@ class LiveDeviceMonitoringTest extends TestCase
             'session_id' => 'session-123',
             'sequence' => 1,
             'source_ip' => '127.0.0.1',
+            'salesforce_contact_key' => 'contact-123',
+            'salesforce_device_id' => 'sfmc-device-123',
         ]);
         Event::assertDispatched(LiveDeviceUpdated::class);
     }
@@ -50,6 +52,7 @@ class LiveDeviceMonitoringTest extends TestCase
                 ->component('LiveDevices/Index')
                 ->has('devices', 1)
                 ->where('devices.0.deviceId', 'device-123')
+                ->where('devices.0.salesforceMarketingCloud.contactKey', 'contact-123')
                 ->where('devices.0.isOnline', true));
     }
 
@@ -67,6 +70,7 @@ class LiveDeviceMonitoringTest extends TestCase
             'device' => ['manufacturer' => 'Google', 'hardwareModel' => 'panther', 'modelName' => 'Pixel 7', 'deviceName' => 'Test phone', 'osVersion' => '15'],
             'network' => ['type' => 'wifi', 'isConnected' => true, 'isInternetReachable' => true, 'cellularGeneration' => null, 'carrier' => null, 'isConnectionExpensive' => false],
             'navigation' => ['url' => 'https://my.synevo.ro/results'],
+            'salesforceMarketingCloud' => ['contactKey' => 'contact-123', 'deviceId' => 'sfmc-device-123'],
         ], ...$overrides];
     }
 }

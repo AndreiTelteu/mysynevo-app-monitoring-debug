@@ -72,7 +72,7 @@ class LiveDeviceController extends Controller
             'platform' => $data['app']['platform'], 'app_version' => $data['app']['version'], 'build_number' => $data['app']['buildNumber'], 'app_state' => $data['app']['state'],
             'manufacturer' => $data['device']['manufacturer'], 'hardware_model' => $data['device']['hardwareModel'], 'model_name' => $data['device']['modelName'], 'device_name' => $data['device']['deviceName'], 'os_version' => $data['device']['osVersion'],
             'network_type' => $data['network']['type'], 'network_connected' => $data['network']['isConnected'], 'network_internet_reachable' => $data['network']['isInternetReachable'], 'cellular_generation' => $data['network']['cellularGeneration'], 'carrier' => $data['network']['carrier'], 'connection_expensive' => $data['network']['isConnectionExpensive'],
-            'navigation_url' => $data['navigation']['url'], 'source_ip' => $sourceIp, 'last_seen_at' => now(),
+            'navigation_url' => $data['navigation']['url'], 'salesforce_contact_key' => $data['salesforceMarketingCloud']['contactKey'], 'salesforce_device_id' => $data['salesforceMarketingCloud']['deviceId'], 'source_ip' => $sourceIp, 'last_seen_at' => now(),
         ];
     }
 
@@ -88,6 +88,7 @@ class LiveDeviceController extends Controller
             'device' => ['required', 'array:manufacturer,hardwareModel,modelName,deviceName,osVersion'], 'device.manufacturer' => ['nullable', 'string', 'max:255'], 'device.hardwareModel' => ['nullable', 'string', 'max:255'], 'device.modelName' => ['nullable', 'string', 'max:255'], 'device.deviceName' => ['nullable', 'string', 'max:255'], 'device.osVersion' => ['nullable', 'string', 'max:255'],
             'network' => ['required', 'array:type,isConnected,isInternetReachable,cellularGeneration,carrier,isConnectionExpensive'], 'network.type' => ['required', 'in:'.implode(',', $networkTypes)], 'network.isConnected' => ['nullable', 'boolean'], 'network.isInternetReachable' => ['nullable', 'boolean'], 'network.cellularGeneration' => ['nullable', 'in:2g,3g,4g,5g'], 'network.carrier' => ['nullable', 'string', 'max:255'], 'network.isConnectionExpensive' => ['nullable', 'boolean'],
             'navigation' => ['required', 'array:url'], 'navigation.url' => ['nullable', 'url', 'max:2048'],
+            'salesforceMarketingCloud' => ['required', 'array:contactKey,deviceId'], 'salesforceMarketingCloud.contactKey' => ['nullable', 'string', 'max:255'], 'salesforceMarketingCloud.deviceId' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

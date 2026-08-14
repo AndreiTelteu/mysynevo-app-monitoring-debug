@@ -39,6 +39,7 @@ class LiveDevice extends Model
             'device' => ['manufacturer' => $this->manufacturer, 'hardwareModel' => $this->hardware_model, 'modelName' => $this->model_name, 'deviceName' => $this->device_name, 'osVersion' => $this->os_version],
             'network' => ['type' => $this->network_type, 'isConnected' => $this->network_connected, 'isInternetReachable' => $this->network_internet_reachable, 'cellularGeneration' => $this->cellular_generation, 'carrier' => $this->carrier, 'isConnectionExpensive' => $this->connection_expensive],
             'navigation' => ['url' => $this->navigation_url],
+            'salesforceMarketingCloud' => ['contactKey' => $this->salesforce_contact_key, 'deviceId' => $this->salesforce_device_id],
             'lastSeenAt' => $this->last_seen_at->toIso8601String(),
             'isPinned' => $this->is_pinned,
             'isOnline' => $this->isOnline(),
