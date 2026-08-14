@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Events\LiveDeviceUpdated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class LiveDeviceMonitoringTest extends TestCase
@@ -37,6 +38,19 @@ class LiveDeviceMonitoringTest extends TestCase
 
         $this->assertDatabaseCount('live_devices', 1);
         $this->assertDatabaseHas('live_devices', ['device_id' => 'device-123', 'sequence' => 3]);
+    }
+
+    public function test_the_public_monitor_loads_existing_devices_from_the_database(): void
+    {
+        $this->postJson('/api/debug/live-devices/state', $this->payload())->assertOk();
+
+        $this->get('/')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('LiveDevices/Index')
+                ->has('devices', 1)
+                ->where('devices.0.deviceId', 'device-123')
+                ->where('devices.0.isOnline', true));
     }
 
     private function payload(array $overrides = []): array
