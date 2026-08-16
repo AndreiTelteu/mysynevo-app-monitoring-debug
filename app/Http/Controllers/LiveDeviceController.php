@@ -76,6 +76,17 @@ class LiveDeviceController extends Controller
         return response()->json(['device' => $liveDevice->toMonitoringArray()]);
     }
 
+    public function updateNickname(Request $request, LiveDevice $liveDevice): JsonResponse
+    {
+        $data = $request->validate(['nickname' => ['nullable', 'string', 'max:100']]);
+        $liveDevice->update(['nickname' => $data['nickname'] ?: null]);
+        $liveDevice->refresh();
+
+        LiveDeviceUpdated::dispatch($liveDevice);
+
+        return response()->json(['device' => $liveDevice->toMonitoringArray()]);
+    }
+
     public function reset(): JsonResponse
     {
         LiveDevice::query()->delete();

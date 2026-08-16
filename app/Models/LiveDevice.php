@@ -32,6 +32,7 @@ class LiveDevice extends Model
         return [
             'id' => $this->id,
             'deviceId' => $this->device_id,
+            'nickname' => $this->nickname,
             'sessionId' => $this->session_id,
             'sequence' => $this->sequence,
             'reason' => $this->reason,

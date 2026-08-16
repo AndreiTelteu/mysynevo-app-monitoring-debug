@@ -15,6 +15,8 @@ Route::patch('/live-devices/{liveDevice}/pin', [LiveDeviceController::class, 'up
     ->name('live-devices.pin');
 Route::patch('/live-devices/{liveDevice}/hidden', [LiveDeviceController::class, 'updateHidden'])
     ->name('live-devices.hidden');
+Route::patch('/live-devices/{liveDevice}/nickname', [LiveDeviceController::class, 'updateNickname'])
+    ->name('live-devices.nickname');
 Route::delete('/live-devices', [LiveDeviceController::class, 'reset'])
     ->name('live-devices.reset');
 

@@ -29,6 +29,7 @@ function matchesFilters(device) {
 function updateDevice(updated) { const index = devices.value.findIndex((device) => device.id === updated.id); if (index === -1) devices.value.unshift(updated); else devices.value[index] = updated; }
 async function togglePin(device) { const original = device.isPinned; device.isPinned = !original; try { updateDevice((await window.axios.patch(route('live-devices.pin', device.id), { isPinned: device.isPinned })).data.device); } catch { device.isPinned = original; } }
 async function toggleHidden(device) { const original = device.isHidden; device.isHidden = !original; try { updateDevice((await window.axios.patch(route('live-devices.hidden', device.id), { isHidden: device.isHidden })).data.device); } catch { device.isHidden = original; } }
+async function updateNickname(device, nickname) { const original = device.nickname; device.nickname = nickname; try { updateDevice((await window.axios.patch(route('live-devices.nickname', device.id), { nickname })).data.device); } catch { device.nickname = original; } }
 async function resetAll() {
     if (!window.confirm('This permanently deletes all tracked device data for everyone. This action cannot be undone.')) return;
 
@@ -55,8 +56,8 @@ onBeforeUnmount(() => { window.clearInterval(timer); window.Echo.leave('live-dev
             <label><span>Presence</span><select v-model="filters.status"><option value="">All</option><option value="online">Online</option><option value="offline">Offline</option><option value="hidden">Hidden</option></select></label>
             <button class="clear-button" type="button" @click="resetFilters">Reset</button>
         </section>
-        <DeviceTable v-if="pinnedDevices.length" title="Pinned devices" :devices="pinnedDevices" :is-online="isOnline" :display-name="displayName" :elapsed="elapsed" :current-path="currentPath" @toggle-pin="togglePin" @toggle-hidden="toggleHidden" />
-        <DeviceTable title="All devices" :devices="allDevices" :is-online="isOnline" :display-name="displayName" :elapsed="elapsed" :current-path="currentPath" @toggle-pin="togglePin" @toggle-hidden="toggleHidden" />
+        <DeviceTable v-if="pinnedDevices.length" title="Pinned devices" :devices="pinnedDevices" :is-online="isOnline" :display-name="displayName" :elapsed="elapsed" :current-path="currentPath" @toggle-pin="togglePin" @toggle-hidden="toggleHidden" @update-nickname="updateNickname" />
+        <DeviceTable title="All devices" :devices="allDevices" :is-online="isOnline" :display-name="displayName" :elapsed="elapsed" :current-path="currentPath" @toggle-pin="togglePin" @toggle-hidden="toggleHidden" @update-nickname="updateNickname" />
         <section class="reset-panel" aria-label="Danger zone"><div><strong>Global reset</strong><small>Permanently delete every tracked device record for all connected clients.</small></div><button type="button" @click="resetAll">Reset all</button></section>
     </div>
 </template>
