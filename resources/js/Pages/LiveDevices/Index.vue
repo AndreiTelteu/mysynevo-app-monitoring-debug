@@ -5,12 +5,13 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 
 const props = defineProps({ devices: { type: Array, default: () => [] }, offlineAfterSeconds: { type: Number, default: 90 } });
 const devices = ref([...props.devices]);
+const pendingDevices = ref([]);
 const now = ref(Date.now());
 const filters = reactive({ query: '', platform: '', environment: '', status: '', network: '', appState: '' });
 let timer;
 
 const selectOptions = computed(() => ({ platforms: unique('app.platform'), environments: unique('environment.key'), networks: unique('network.type'), appStates: unique('app.state') }));
-const filteredDevices = computed(() => devices.value.filter(matchesFilters).sort((a, b) => new Date(b.lastSeenAt) - new Date(a.lastSeenAt)));
+const filteredDevices = computed(() => devices.value.filter(matchesFilters));
 const pinnedDevices = computed(() => filteredDevices.value.filter((device) => device.isPinned));
 const allDevices = computed(() => filteredDevices.value.filter((device) => !device.isPinned));
 
@@ -26,20 +27,31 @@ function matchesFilters(device) {
 
     return (!query || haystack.includes(query)) && (!filters.platform || device.app.platform === filters.platform) && (!filters.environment || device.environment.key === filters.environment) && (!filters.network || device.network.type === filters.network) && (!filters.appState || device.app.state === filters.appState) && matchesPresence;
 }
-function updateDevice(updated) { const index = devices.value.findIndex((device) => device.id === updated.id); if (index === -1) devices.value.unshift(updated); else devices.value[index] = updated; }
+function updateDevice(updated) {
+    const visibleIndex = devices.value.findIndex((device) => device.id === updated.id);
+    if (visibleIndex !== -1) {
+        devices.value[visibleIndex] = updated;
+        return;
+    }
+
+    const pendingIndex = pendingDevices.value.findIndex((device) => device.id === updated.id);
+    if (pendingIndex === -1) pendingDevices.value.push(updated);
+    else pendingDevices.value[pendingIndex] = updated;
+}
+function revealNewDevices() { devices.value.push(...pendingDevices.value); pendingDevices.value = []; }
 async function togglePin(device) { const original = device.isPinned; device.isPinned = !original; try { updateDevice((await window.axios.patch(route('live-devices.pin', device.id), { isPinned: device.isPinned })).data.device); } catch { device.isPinned = original; } }
 async function toggleHidden(device) { const original = device.isHidden; device.isHidden = !original; try { updateDevice((await window.axios.patch(route('live-devices.hidden', device.id), { isHidden: device.isHidden })).data.device); } catch { device.isHidden = original; } }
 async function updateNickname(device, nickname) { const original = device.nickname; device.nickname = nickname; try { updateDevice((await window.axios.patch(route('live-devices.nickname', device.id), { nickname })).data.device); } catch { device.nickname = original; } }
 async function resetAll() {
     if (!window.confirm('This permanently deletes all tracked device data for everyone. This action cannot be undone.')) return;
 
-    try { await window.axios.delete(route('live-devices.reset')); devices.value = []; } catch { window.alert('Unable to reset tracked device data. Please try again.'); }
+    try { await window.axios.delete(route('live-devices.reset')); devices.value = []; pendingDevices.value = []; } catch { window.alert('Unable to reset tracked device data. Please try again.'); }
 }
 function displayName(device) { return device.device.deviceName || device.device.modelName || device.device.hardwareModel || 'Unnamed device'; }
 function elapsed(device) { const seconds = Math.max(0, Math.floor((now.value - new Date(device.lastSeenAt).getTime()) / 1000)); if (seconds < 60) return `${seconds}s ago`; if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`; return `${Math.floor(seconds / 3600)}h ago`; }
 function currentPath(url) { if (!url) return 'No route reported'; try { const parsed = new URL(url); return `${parsed.pathname}${parsed.search}${parsed.hash}` || '/'; } catch { return url.startsWith('/') ? url : 'No route reported'; } }
 function resetFilters() { Object.assign(filters, { query: '', platform: '', environment: '', status: '', network: '', appState: '' }); }
-onMounted(() => { timer = window.setInterval(() => { now.value = Date.now(); }, 1000); window.Echo.channel('live-devices').listen('.LiveDeviceUpdated', ({ device }) => updateDevice(device)).listen('.LiveDevicesReset', () => { devices.value = []; }); });
+onMounted(() => { timer = window.setInterval(() => { now.value = Date.now(); }, 1000); window.Echo.channel('live-devices').listen('.LiveDeviceUpdated', ({ device }) => updateDevice(device)).listen('.LiveDevicesReset', () => { devices.value = []; pendingDevices.value = []; }); });
 onBeforeUnmount(() => { window.clearInterval(timer); window.Echo.leave('live-devices'); });
 </script>
 
@@ -47,7 +59,7 @@ onBeforeUnmount(() => { window.clearInterval(timer); window.Echo.leave('live-dev
     <Head title="Live Device Monitor" />
     <div class="monitor-shell">
         <section class="filter-panel" aria-label="Device filters">
-            <div class="filter-title"><span class="mark"></span><strong>Live devices</strong><small>{{ devices.length }} tracked</small></div>
+            <div class="filter-title"><span class="mark"></span><strong>Live devices</strong><small>{{ devices.length + pendingDevices.length }} tracked</small></div>
             <label class="search-field"><span>Search</span><input v-model="filters.query" type="search" placeholder="Device, route, SFMC key..." /></label>
             <label><span>Platform</span><select v-model="filters.platform"><option value="">All</option><option v-for="option in selectOptions.platforms" :key="option">{{ option }}</option></select></label>
             <label><span>Environment</span><select v-model="filters.environment"><option value="">All</option><option v-for="option in selectOptions.environments" :key="option">{{ option }}</option></select></label>
@@ -57,7 +69,7 @@ onBeforeUnmount(() => { window.clearInterval(timer); window.Echo.leave('live-dev
             <button class="clear-button" type="button" @click="resetFilters">Reset</button>
         </section>
         <DeviceTable v-if="pinnedDevices.length" title="Pinned devices" :devices="pinnedDevices" :is-online="isOnline" :display-name="displayName" :elapsed="elapsed" :current-path="currentPath" @toggle-pin="togglePin" @toggle-hidden="toggleHidden" @update-nickname="updateNickname" />
-        <DeviceTable title="All devices" :devices="allDevices" :is-online="isOnline" :display-name="displayName" :elapsed="elapsed" :current-path="currentPath" @toggle-pin="togglePin" @toggle-hidden="toggleHidden" @update-nickname="updateNickname" />
+        <DeviceTable title="All devices" :devices="allDevices" :pending-device-count="pendingDevices.length" :is-online="isOnline" :display-name="displayName" :elapsed="elapsed" :current-path="currentPath" @reveal-new-devices="revealNewDevices" @toggle-pin="togglePin" @toggle-hidden="toggleHidden" @update-nickname="updateNickname" />
         <section class="reset-panel" aria-label="Danger zone"><div><strong>Global reset</strong><small>Permanently delete every tracked device record for all connected clients.</small></div><button type="button" @click="resetAll">Reset all</button></section>
     </div>
 </template>

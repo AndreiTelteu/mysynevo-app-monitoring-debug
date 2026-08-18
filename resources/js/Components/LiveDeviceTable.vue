@@ -5,13 +5,14 @@ import DeviceNickname from '@/Components/DeviceNickname.vue';
 defineProps({
     title: { type: String, required: true },
     devices: { type: Array, required: true },
+    pendingDeviceCount: { type: Number, default: 0 },
     isOnline: { type: Function, required: true },
     displayName: { type: Function, required: true },
     elapsed: { type: Function, required: true },
     currentPath: { type: Function, required: true },
 });
 
-const emit = defineEmits(['toggle-pin', 'toggle-hidden', 'update-nickname']);
+const emit = defineEmits(['toggle-pin', 'toggle-hidden', 'update-nickname', 'reveal-new-devices']);
 
 const copiedValue = ref('');
 
@@ -39,7 +40,7 @@ async function copy(value) {
 <template>
     <section class="device-section">
         <div class="section-heading">
-            <h2>{{ title }} <span>{{ devices.length }}</span></h2>
+            <h2>{{ title }} <span>{{ devices.length + pendingDeviceCount }}</span></h2>
             <span class="stream-label">LIVE DEVICE STATE</span>
         </div>
         <div class="table-wrap">
@@ -61,7 +62,8 @@ async function copy(value) {
                         </td>
                         <td><strong>{{ elapsed(device) }}</strong><small>{{ new Date(device.lastSeenAt).toLocaleTimeString() }}</small></td>
                     </tr>
-                    <tr v-if="!devices.length"><td colspan="8" class="empty-state">No devices match the active filters.</td></tr>
+                    <tr v-if="pendingDeviceCount" class="new-devices-row"><td colspan="8"><button type="button" @click="emit('reveal-new-devices')"><span>{{ pendingDeviceCount }} {{ pendingDeviceCount === 1 ? 'device nou' : 'deviceuri noi' }}</span><strong>Click pentru afisare</strong></button></td></tr>
+                    <tr v-if="!devices.length && !pendingDeviceCount"><td colspan="8" class="empty-state">No devices match the active filters.</td></tr>
                 </tbody>
             </table>
         </div>
@@ -71,5 +73,6 @@ async function copy(value) {
 <style scoped>
 .device-section { max-width: 1536px; margin: 0 auto 2rem; }.section-heading { display: flex; align-items: center; justify-content: space-between; margin: 0 0 .6rem; }.section-heading h2 { margin: 0; color: #0052a5; font: 700 1.05rem/1 'DM Sans', sans-serif; }.section-heading h2 span { display: inline-grid; min-width: 1.45rem; height: 1.45rem; margin-left: .4rem; place-items: center; border-radius: 50%; background: #e5f1ff; color: #0069c7; font: 500 .67rem 'DM Mono', monospace; vertical-align: middle; }.stream-label { color: #1e2933; font: .61rem 'DM Mono', monospace; letter-spacing: .09em; }.table-wrap { overflow-x: auto; border-radius: .55rem; background: #fff; box-shadow: 0 1px 2px rgba(0,52,110,.08); } table { width: 100%; min-width: 1260px; border-collapse: collapse; } th { padding: .7rem 1rem; border-bottom: 1px solid #e5edf5; background: #f8fbfe; color: #263746; text-align: left; font: 500 .62rem 'DM Mono', monospace; letter-spacing: .06em; text-transform: uppercase; } td { padding: .78rem 1rem; vertical-align: top; border-bottom: 1px solid #edf2f7; color: #073f7a; font-size: .78rem; } tbody tr:last-child td { border: 0; } tbody tr:hover { background: #f6fbff; } td strong, td small, td code { display: block; } td strong { margin-bottom: .2rem; color: #10202d; font-size: .78rem; } td small { max-width: 14rem; overflow: hidden; color: #1f2d38; font-size: .67rem; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; } td code { max-width: 15rem; margin-top: .32rem; overflow: hidden; color: #0d477d; font: .61rem 'DM Mono', monospace; text-overflow: ellipsis; white-space: nowrap; }.environment-route small { color: #164f87; }.environment-route code { color: #005eb8; }.salesforce-cell { min-width: 13rem; }.copy-value { display: block; max-width: 15rem; overflow: hidden; border: 0; border-radius: .18rem; background: transparent; padding: 0; color: #10202d; cursor: copy; font: 700 .78rem 'DM Sans', sans-serif; text-align: left; text-overflow: ellipsis; white-space: nowrap; }.copy-value:hover,.copy-value:focus-visible { background: #e4f2ff; color: #005eb8; outline: none; }.copy-code { margin-top: .32rem; color: #0d477d; font: .61rem 'DM Mono', monospace; font-weight: 400; }.presence { display: flex; align-items: center; gap: .35rem; font-weight: 700; }.presence i { width: .45rem; height: .45rem; border-radius: 50%; }.presence.online { color: #16835a; }.presence.online i { background: #2ab477; box-shadow: 0 0 0 3px rgba(42,180,119,.13); }.presence.offline { color: #b04d46; }.presence.offline i { background: #db8179; }.presence + small { margin: .35rem 0 0 .8rem; }.pin-button { border: 1px solid #bcd3ea; border-radius: .25rem; background: #fff; padding: .28rem .42rem; color: #0063b8; cursor: pointer; font: 500 .58rem 'DM Mono', monospace; }.pin-button:hover,.pin-button.active { border-color: #ffbd26; background: #fff8e7; color: #d78c00; }.empty-state { padding: 2.5rem; color: #1f2d38; text-align: center; font: .75rem 'DM Mono', monospace; }
 .actions-cell { min-width: 7.8rem; }.actions-cell button + button { margin-top: .35rem; }.hide-button { border: 1px solid #aebdca; border-radius: .28rem; background: #fff; padding: .35rem .45rem; color: #475569; cursor: pointer; font: 500 .59rem 'DM Mono', monospace; }.hide-button:hover,.hide-button.active { border-color: #64748b; background: #f1f5f9; color: #334155; }
+.new-devices-row td { padding: 0; background: #f4faff; }.new-devices-row button { display: flex; width: 100%; align-items: center; justify-content: space-between; border: 0; border-left: 3px solid #1473c7; background: transparent; padding: .75rem 1rem; color: #005eb8; cursor: pointer; text-align: left; }.new-devices-row button:hover { background: #e7f4ff; }.new-devices-row span { font: 500 .69rem 'DM Mono', monospace; letter-spacing: .02em; }.new-devices-row strong { color: #0d477d; font: 500 .62rem 'DM Mono', monospace; text-transform: uppercase; }
 @media (max-width: 600px) { .stream-label { display: none; } }
 </style>
